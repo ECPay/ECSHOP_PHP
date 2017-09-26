@@ -37,7 +37,7 @@ if (isset($set_modules) && $set_modules == TRUE) {
     $modules[$i]['website'] = 'https://www.ecpay.com.tw';
 
     /* 版本號 */
-    $modules[$i]['version'] = 'V1.0.0831';
+    $modules[$i]['version'] = 'V1.0.0914';
 
     /* 配置信息 */
     $modules[$i]['config'] = array(
@@ -87,9 +87,8 @@ class ecshop_ecpay_card18 extends AllInOne {
         $szRetUrl = return_url(basename(__FILE__, '.php')) . "&log_id=" . $order['log_id'] . "&order_id=" . $order['order_id'];
         $szRetUrl = str_ireplace('/mobile/', '/', $szRetUrl);
         
-        $this->Send['ReturnURL'] = $szRetUrl . '&background=1';
-        $this->Send['ClientBackURL'] = $GLOBALS['ecs']->url();
-        $this->Send['OrderResultURL'] = $szRetUrl;
+        $this->Send['ReturnURL'] = $szRetUrl;
+        $this->Send['ClientBackURL'] = $GLOBALS['ecs']->url() . '/user.php?act=order_detail&order_id=' . $order['order_id'];
         $this->Send['MerchantTradeNo'] = $order['order_sn'];
         $this->Send['MerchantTradeDate'] = date('Y/m/d H:i:s');
         $this->Send['TotalAmount'] = (int)$order['order_amount'];
@@ -130,7 +129,7 @@ class ecshop_ecpay_card18 extends AllInOne {
 
             if (sizeof($arFeedback) > 0) {
                 // 查詢付款結果資料。
-				$this->ServiceURL = ($isTestMode ? "https://payment-stage.ecpay.com.tw/Cashier/QueryTradeInfo/v2" : "https://payment.ecpay.com.tw/Cashier/QueryTradeInfo/V2");
+				$this->ServiceURL = ($isTestMode ? "https://payment-stage.ecpay.com.tw/Cashier/QueryTradeInfo/V4" : "https://payment.ecpay.com.tw/Cashier/QueryTradeInfo/V4");
                 $this->MerchantID = trim($arPayment['ecshop_ecpay_card18_account']);
                 $this->Query['MerchantTradeNo'] = $arFeedback['MerchantTradeNo'];
 
@@ -148,19 +147,11 @@ class ecshop_ecpay_card18 extends AllInOne {
 
                         order_paid($szLogID, PS_PAYED, $szNote);
 
-                        if ($_GET['background']){
-                            echo '1|OK';
-                            exit;
-                        } else {
-                            return true;
-                        }
+                        echo '1|OK';
+                        exit;
                     } else {
-                        if ($_GET['background']){
-                            echo (!$szCheckAmount ? '0|訂單金額不符。' : $arFeedback['RtnMsg']);
-                            exit;
-                        } else {
-                            return false;
-                        }
+                        echo (!$szCheckAmount ? '0|訂單金額不符。' : $arFeedback['RtnMsg']);
+                        exit;
                     }
                 } else {
                     throw new Exception('ECPay 查無訂單資料。');
